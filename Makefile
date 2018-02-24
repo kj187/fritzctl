@@ -37,7 +37,7 @@ sysinfo: toolchain
 	@echo -n "     BUILDFLAGS: $(BUILDFLAGS)"
 	@$(call ok)
 
-clean:
+clean: toolchain
 	@echo -n ">> CLEAN"
 	@vgo clean -i
 	@rm -f ./os/completion/fritzctl
