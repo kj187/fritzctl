@@ -10,7 +10,7 @@ DEPENDENCIES_GRAPH_OUTPUT ?= "dependencies.png"
 BUILDFLAGS                := -ldflags="-s -w -X github.com/bpicode/fritzctl/config.Version=$(FRITZCTL_VERSION) -X github.com/bpicode/fritzctl/config.Revision=$(FRITZCTL_REVISION)" -gcflags="-trimpath=$(GOPATH)" -asmflags="-trimpath=$(GOPATH)"
 TESTFLAGS                 ?=
 
-all: sysinfo build install test codequality completion_bash man
+all: toolchain sysinfo build install test codequality completion_bash man
 
 .PHONY: clean build man
 
@@ -19,6 +19,12 @@ define ok
 	@echo " [OK]"
 	@tput sgr0 2>/dev/null || echo -n ""
 endef
+
+toolchain:
+	@echo ">> TOOLCHAIN"
+	@echo -n "     vgo:"
+	@go get -u golang.org/x/vgo
+	@$(call ok)
 
 sysinfo:
 	@echo ">> SYSTEM INFORMATION"
@@ -59,7 +65,6 @@ depgraph: deps
 
 build:
 	@echo -n ">> BUILD, version = $(FRITZCTL_VERSION)/$(FRITZCTL_REVISION), output = $(FRITZCTL_OUTPUT)"
-	@go get -u golang.org/x/vgo
 	@vgo build -o $(FRITZCTL_OUTPUT) $(BUILDFLAGS)
 	@$(call ok)
 
