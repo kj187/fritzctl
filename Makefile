@@ -26,7 +26,7 @@ toolchain:
 	@go get -u golang.org/x/vgo
 	@$(call ok)
 
-sysinfo:
+sysinfo: toolchain
 	@echo ">> SYSTEM INFORMATION"
 	@echo -n "     PLATFORM: $(shell uname -a)"
 	@$(call ok)
