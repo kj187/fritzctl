@@ -59,6 +59,7 @@ depgraph: deps
 
 build:
 	@echo -n ">> BUILD, version = $(FRITZCTL_VERSION)/$(FRITZCTL_REVISION), output = $(FRITZCTL_OUTPUT)"
+	@go get -u golang.org/x/vgo
 	@vgo build -o $(FRITZCTL_OUTPUT) $(BUILDFLAGS)
 	@$(call ok)
 
