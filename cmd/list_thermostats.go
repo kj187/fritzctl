@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/bpicode/fritzctl/cmd/jsonapi"
+	"github.com/bpicode/fritzctl/cmd/printer"
 	"github.com/bpicode/fritzctl/console"
 	"github.com/bpicode/fritzctl/fritz"
 	"github.com/bpicode/fritzctl/logger"
@@ -21,19 +23,34 @@ var listThermostatsCmd = &cobra.Command{
 }
 
 func init() {
+	listThermostatsCmd.Flags().StringP("output", "o", "", "specify output format")
 	listCmd.AddCommand(listThermostatsCmd)
 }
 
-func listThermostats(_ *cobra.Command, _ []string) error {
+func listThermostats(cmd *cobra.Command, _ []string) error {
 	c := homeAutoClient()
 	devs, err := c.List()
 	assertNoErr(err, "cannot obtain thermostats device data")
+	data, err := remapThermostats(cmd, devs.Thermostats())
+	assertNoErr(err, "failed to print results for thermostats device data")
 	logger.Success("Device data:")
-
-	table := thermostatsTable()
-	appendThermostats(devs, table)
-	table.Print(os.Stdout)
+	printer.Print(data, os.Stdout)
 	return nil
+}
+
+func remapThermostats(cmd *cobra.Command, ds []fritz.Device) (interface{}, error) {
+	o := cmd.Flag("output").Value.String()
+	switch o {
+	case "":
+		t := thermostatsTable()
+		appendThermostats(ds, t)
+		return t, nil
+	case "json":
+		mapper := jsonapi.NewThermostatsMapper()
+		return mapper.Convert(ds), nil
+	default:
+		return nil, fmt.Errorf("no output engine found for '%s'", o)
+	}
 }
 
 var errorCodesVsDescriptions = map[string]string{
@@ -64,9 +81,10 @@ func thermostatsTable() *console.Table {
 	))
 }
 
-func appendThermostats(devs *fritz.Devicelist, table *console.Table) {
-	for _, dev := range devs.Thermostats() {
-		table.Append(thermostatColumns(dev))
+func appendThermostats(devs []fritz.Device, table *console.Table) {
+	for _, dev := range devs {
+		columns := thermostatColumns(dev)
+		table.Append(columns)
 	}
 }
 
